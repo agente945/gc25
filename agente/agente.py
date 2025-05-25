@@ -3,7 +3,7 @@ import re
 import time
 import subprocess
 
-host = "127.0.0.1:80"
+host = "127.0.0.1:80"  # Mude isso
 delay = 2
 command_wait_timeout = 30
 

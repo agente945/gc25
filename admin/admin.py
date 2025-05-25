@@ -4,7 +4,7 @@ import threading
 import time
 from time import sleep
 
-host = "127.0.0.1:80"
+host = "127.0.0.1:80"  # Mude isso
 token = ""
 parar_loop_de_logs = False
 am_i_online = False
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             r"[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}$",
             token,
         ):
-            token = "fb1cd725-e33b-494d-9159-50921151b22c"  # input("Token de acesso:")
+            token = input("Token de acesso:")
             am_i_online = False
             continue
 

@@ -6,7 +6,7 @@ from time import time
 
 PORT = 80
 app = Flask(__name__)
-admin_token = "fb1cd725-e33b-494d-9159-50921151b22c"
+admin_token = "fb1cd725-e33b-494d-9159-50921151b22c"  # Mude isso
 
 
 def generate_challenge():
