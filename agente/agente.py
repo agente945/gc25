@@ -41,7 +41,7 @@ def comunica(data):
 def autentica():
     global token
 
-    print("Tentando autenticação...")
+    print("Tentando autenticacao...")
     resposta = comunica("hi")
     if not re.match(r"[0-9]{10}$", resposta):
         print("Falha ao comunicar-se")
@@ -83,33 +83,39 @@ def responde():
 def executa():
     global saida, ordem
 
-    print(f"Executando comando: {ordem}")
+    print(f"Executando comando: {ordem!r}")
 
     try:
         resultado = subprocess.run(
             ordem,
             shell=True,
             check=True,
-            capture_output=True,
-            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
             timeout=command_wait_timeout,
         )
         saida = resultado.stdout.strip()
+
     except subprocess.TimeoutExpired:
         saida = "Timeout"
-    except subprocess.CalledProcessError as e:
-        saida = (
-            f"Erro (exit code {e.returncode}): {e.stderr.strip() if e.stderr else ''}"
-        )
-    except ValueError as e:
-        print(f"Ocorreu erro durante execução de comando {e}")
 
-    ordem = ""
+    except subprocess.CalledProcessError as e:
+        erro_stderr = e.stderr.strip() if e.stderr else ""
+        saida = f"Erro (exit code {e.returncode}): {erro_stderr}"
+
+    except Exception as e:
+        saida = f"excececao inesperada: {e}"
+
+    finally:
+        ordem = ""
+
+    print(f"saida: {saida!r}")
 
 
 def main():
     while True:
-        # Delay entre as requisições
+        # Delay entre as requisicoes
         time.sleep(delay)
 
         # Estou autenticado?
