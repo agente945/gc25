@@ -12,6 +12,14 @@ ordem = ""
 saida = ""
 
 
+def verify_challenge(n: int) -> int:
+    MULTIPLIER = 1234567
+    ADDEND = 890123
+    MODULUS = 2**32
+
+    return (n * MULTIPLIER + ADDEND) % MODULUS
+
+
 def reinicia():
     global token, ordem, saida
 
@@ -49,7 +57,7 @@ def autentica():
 
     print(f"Desafio recebido: {resposta}")
 
-    resposta = (int(resposta) // 100) * 100
+    resposta = verify_challenge(int(resposta))
 
     print(f"Enviando resposta: {resposta}")
 
