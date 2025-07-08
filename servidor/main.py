@@ -54,11 +54,8 @@ if __name__ == "__main__":
             # Solicitação de desafio
             return str(generate_challenge())
 
-        elif (
-            re.match(r"\d{10}$", data)
-            and verify_challenge(data)
-            and not "whoami" in c2.get_current_status()
-        ):
+
+        elif data.strip().isdigit() and verify_challenge(int(data.strip())):
             # Resposta desafio + criação de sessão
             agent = Agent(ip)
             session_id = c2.signup_agent(agent)
